@@ -1,5 +1,5 @@
 ;;; -*- mode: lisp; indent-tabs: nil -*-
 
 (defpackage :rpd-towerdefense
-  (:use :cl)
-  (:export #:test))
+  (:use :cl :iterate :alexandria)
+  (:export ))
