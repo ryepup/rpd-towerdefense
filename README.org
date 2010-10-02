@@ -1,0 +1,19 @@
+
+* Summary
+
+  This is a hobby project to make a turn-based towerdefense game.
+  This will be a more asynchronous game, where you set up the towers
+  then hit "go".
+
+  The "story" if I ever get around to making it, will be something
+  sci-fi-ish where the player is a deep-space miner and goes into
+  suspended animation for long periods of time, waking up to shore up
+  the defenses.
+
+* Todo
+** foundation crap
+** get a grid for the playing board
+** simulation
+* Implementation
+** lisp for simulations 
+** sdl for rendering
