@@ -12,5 +12,6 @@
 		((:file "package")
 		 (:file "map")
 		 (:file "towers")
+		 (:file "render")
 		 (:file "rpd-towerdefense"))))
   :depends-on (#:iterate #:alexandria #:lispbuilder-sdl))

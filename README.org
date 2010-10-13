@@ -11,9 +11,23 @@
   the defenses.
 
 * Todo
-** foundation crap
-** get a grid for the playing board
+** DONE foundation crap
+** DONE get a grid for the playing board
 ** simulation
+*** refinery
+    basic resource-gathering structure
 * Implementation
-** lisp for simulations 
+** lisp for simulations
+*** basic 2-stage plan/act cycle for each game piece
 ** sdl for rendering
+*** fixed grid square size
+    I always get bogged down in making everything dynamic based on
+    window size, just keep it fixed for now.
+*** animation queue
+    want to make some have animations that must run their course
+    before the next turn starts.  Did something similar in sandbox,
+    but those were modelled like any other actor in the system, and I
+    think these should be separate to prevent snowballing.
+**** simple list of objects on the renderer 
+     They keep track of their age, and wait for all of them to die
+     before moving on to the next step in the simulation.

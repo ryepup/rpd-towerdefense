@@ -1,0 +1,85 @@
+(in-package :rpd-towerdefense)
+
+(defvar *renderer* nil)
+
+(defclass renderer ()
+  ((board :accessor board :initarg :board)))
+
+(defgeneric %with-renderer (renderer bodyfn)
+  (:method :around ((self renderer) bodyfn)
+    (declare (ignore bodyfn))
+    (let ((*renderer* self))
+      (call-next-method))))
+
+(defgeneric render-turn (renderer turn-number))
+(defgeneric render-game-piece (renderer piece))
+(defgeneric render-plan (renderer piece plan))
+
+(defmacro with-renderer ((&rest renderer-args) &body body)
+  `(%with-renderer
+    (make-instance ,@renderer-args)
+    #'(lambda () ,@body)))
+
+(defclass sdl-renderer (renderer)
+  ((width :reader width :initarg :width)
+   (height :reader height :initarg :height)
+   (surfaces :accessor surfaces :initform nil)))
+
+(defmethod surface ((self sdl-renderer) surface-keyword)
+  (cdr (assoc surface-keyword (surfaces self))))
+
+(defmethod render-game-piece ((self sdl-renderer) p)
+  (sdl:draw-filled-circle-* (+ 15 (* 30 (x p)))
+			    (+ 15 (* 30 (y p)))
+			    10
+			    :color sdl:*white*))
+
+(defmethod render-plan ((self sdl-renderer) (r refinery)
+			(plan (eql :refine)))
+  (sdl:draw-filled-circle-* (+ 15 (* 30 (x r)))
+			    (+ 15 (* 30 (y r)))
+			    5
+			    :color sdl:*red*)
+  (sdl:update-display)
+  )
+
+(defmethod render-turn ((self sdl-renderer) turn-number)
+  (sdl:blit-surface (surface self :board))
+  (iter (for p in (pieces (board self)))
+	(render-game-piece self p))
+  (sdl:update-display))
+
+(defmethod draw-board ((self sdl-renderer)
+		       &key (square-length 30)
+		       &allow-other-keys) 
+  (sdl:with-surface (grid
+		     (sdl:create-surface (width self)
+					 (height self))
+		     nil)
+    (sdl:draw-box-* 1 1 (width self) (height self)
+		    :color sdl:*black*)
+    (sdl:with-color (_ (sdl:color :r 127 :g 127 :b 127))
+      (destructuring-bind (board-width board-height)
+	  (bounds (board self))	
+	(dotimes (x (1+ board-width))
+	  (sdl:draw-vline (* x square-length)
+			  1 (* board-height square-length))
+	  (dotimes (y (1+ board-height))
+	    (sdl:draw-hline 1 (* board-width square-length)
+			    (* y square-length))))))
+    (sdl:set-point-* grid :y 0 :x 0)
+    (push (cons :board grid) (surfaces self))
+    grid))
+
+(defmethod %with-renderer ((self sdl-renderer) bodyfn)
+  (sdl:with-init ()
+    (sdl:window (width self) (height self))
+    (setf (sdl:frame-rate) 15)
+    (draw-board self) 
+    (sdl:with-events ()
+      (:quit-event ()
+		   (mapc (compose #'sdl:free #'cdr)
+			 (surfaces self))
+		   T)
+      (:idle ()
+	     (funcall bodyfn)))))
