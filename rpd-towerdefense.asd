@@ -5,12 +5,12 @@
   :licence "LGPL (or talk to me)"
   :serial t
   ;; add new files to this list:
-  :components 
-  ((:module
-    :src
-    :serial t
-    :components
-    ((:file "package") 
-     (:file "rpd-towerdefense"))))
-  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl
-			 #:cl-geometry))
+  :components ((:module
+		:src
+		:serial t
+		:components
+		((:file "package")
+		 (:file "map")
+		 (:file "towers")
+		 (:file "rpd-towerdefense"))))
+  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl))

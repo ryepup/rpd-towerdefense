@@ -5,13 +5,14 @@
 (defun simulate (board turns)
   (iterate
    (for turn from 0 to turns)
-   (collect
-    (list turn
-	  (iterate (for piece in (pieces board))
-		   (when-let ((effects (act piece)))
-		     (collect effects)))
-	  (snapshot board)  ))
-   )
-  )
+   (iterate
+     (for piece in (pieces board))
+     (when-let ((plan (plan piece)))
+       (collect (list piece plan) into plans))
+     (finally (dolist (pp plans)
+		(apply #'act pp))))))
 
-(defun render (simulation-results))
+(defun test (&optional (turns 1))
+  (let ((b (parse-map *simple-map*)))
+    (simulate b turns)
+    b))

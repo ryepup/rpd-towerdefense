@@ -5,8 +5,15 @@
    (y :accessor y)
    (board :accessor board)))
 
-(defgeneric act (piece)
-  (:method ((p game-piece)) nil))
+(defgeneric plan (piece)
+  (:method ((p game-piece))
+    (declare (ignore p))
+    nil))
+
+(defgeneric act (piece plan)
+  (:method ((p game-piece) plan)
+    (declare (ignore plan))
+    nil))
 
 (defvar *simple-map*
   (let ((mp (make-array '(10 10) :initial-element 0)))
@@ -19,7 +26,8 @@
 
 (defclass board ()
   ((pieces :accessor pieces :initform nil)
-   (bounds :accessor bounds)))
+   (bounds :accessor bounds)
+   (money :accessor money :initform 0)))
 
 (defgeneric snapshot (thing)
   (:method ((b board))
@@ -43,7 +51,7 @@
   (mapc-board
    board
    #'(lambda (x y)
-       (when-let (tower (parse-map-square
-			 (aref input x y)))
-	 (add-piece board tower x y))))
+       (when-let (p (parse-map-square
+		     (aref input x y)))
+	 (add-piece board p x y))))
   board)
