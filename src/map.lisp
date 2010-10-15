@@ -18,6 +18,7 @@
 (defvar *simple-map*
   (let ((mp (make-array '(10 10) :initial-element 0)))
     (setf (aref mp 5 5) :r)
+    (setf (aref mp 2 5) :r)
     mp
     ))
 

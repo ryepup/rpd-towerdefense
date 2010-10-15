@@ -116,16 +116,18 @@
 			 (surfaces self))
 		   T)
       (:idle ()
-	     (when (done-with-animations-p self)
+	     (when (finish-animations self)
 	       (simulate board 1))))))
 
-(defmethod done-with-animations-p ((self sdl-renderer))
-  (if-let ((a (cl-heap:dequeue (animations self))))
-    (progn
-      (funcall a)
-      (sdl:update-display)
-      nil)
-    T))
+(defmethod finish-animations ((self sdl-renderer))
+  (let ((heap (slot-value (animations self) 'cl-heap::heap))
+	priority)
+    (iter (for p = (first (cl-heap:peep-at-heap heap)))
+	  (unless priority (setf priority p))	  
+	  (while (and p (eq p priority)))
+	  (funcall (cl-heap:dequeue (animations self)))
+	  (finally (sdl:update-display)))    
+    (null priority)))
 
 
 
