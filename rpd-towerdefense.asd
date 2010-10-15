@@ -14,4 +14,4 @@
 		 (:file "towers")
 		 (:file "render")
 		 (:file "rpd-towerdefense"))))
-  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl))
+  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl #:cl-heap))

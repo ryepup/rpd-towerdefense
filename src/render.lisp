@@ -5,9 +5,9 @@
 (defclass renderer ()
   ((board :accessor board :initarg :board)))
 
-(defgeneric %with-renderer (renderer bodyfn)
-  (:method :around ((self renderer) bodyfn)
-    (declare (ignore bodyfn))
+(defgeneric %with-renderer (renderer board)
+  (:method :around ((self renderer) board)
+    (declare (ignore board))
     (let ((*renderer* self))
       (call-next-method))))
 
@@ -15,33 +15,54 @@
 (defgeneric render-game-piece (renderer piece))
 (defgeneric render-plan (renderer piece plan))
 
-(defmacro with-renderer ((&rest renderer-args) &body body)
+(defmacro with-renderer ((&rest renderer-args) board)
   `(%with-renderer
     (make-instance ,@renderer-args)
-    #'(lambda () ,@body)))
+    ,board))
 
 (defclass sdl-renderer (renderer)
-  ((width :reader width :initarg :width)
+  ((cell-size :reader cell-size :initform 48)
+   (width :reader width :initarg :width)
    (height :reader height :initarg :height)
-   (surfaces :accessor surfaces :initform nil)))
+   (surfaces :accessor surfaces :initform nil)
+   (animations :accessor animations :initform (make-instance 'cl-heap:priority-queue))))
 
 (defmethod surface ((self sdl-renderer) surface-keyword)
   (cdr (assoc surface-keyword (surfaces self))))
+(defmethod add-surface ((self sdl-renderer) surface-keyword surf)
+  (push (cons surface-keyword surf) (surfaces self)))
 
 (defmethod render-game-piece ((self sdl-renderer) p)
-  (sdl:draw-filled-circle-* (+ 15 (* 30 (x p)))
-			    (+ 15 (* 30 (y p)))
-			    10
-			    :color sdl:*white*))
+  (let ((cell-size (cell-size self)))
+    (sdl:draw-filled-circle-* (+ (/ cell-size 2) (* cell-size (x p)))
+			      (+ (/ cell-size 2) (* cell-size (y p)))
+			      (truncate (/ cell-size 3))
+			      :color sdl:*white*)))
+
+(defmethod render-game-piece ((self sdl-renderer) (r refinery))
+  (let ((cell-size (cell-size self)))
+    (sdl:draw-surface-at-* (surface self :sprite)
+			   (1+ (* cell-size (x r)))
+			   (1+ (* cell-size (y r)))
+			   :cell 1)))
+
+(defmethod render-sprite ((self sdl-renderer) cell (p game-piece))
+  (let ((cell-size (cell-size self)))
+    (sdl:draw-surface-at-* (surface self :sprite)
+			   (1+ (* cell-size (x p)))
+			   (1+ (* cell-size (y p)))
+			   :cell cell)))
 
 (defmethod render-plan ((self sdl-renderer) (r refinery)
 			(plan (eql :refine)))
-  (sdl:draw-filled-circle-* (+ 15 (* 30 (x r)))
-			    (+ 15 (* 30 (y r)))
-			    5
-			    :color sdl:*red*)
-  (sdl:update-display)
-  )
+  (iter (for cell in '(2 2 2 3 3 3 2 2 2))
+	(for frame from 1)
+	(cl-heap:enqueue (animations self)
+			 (let ((cell cell))
+			   (lambda () (render-sprite self cell r)))
+			 frame)))
+
+(defmethod render-plan ((self sdl-renderer) p (plan (eql :idle))))
 
 (defmethod render-turn ((self sdl-renderer) turn-number)
   (sdl:blit-surface (surface self :board))
@@ -50,7 +71,7 @@
   (sdl:update-display))
 
 (defmethod draw-board ((self sdl-renderer)
-		       &key (square-length 30)
+		       &key (square-length (cell-size self))
 		       &allow-other-keys) 
   (sdl:with-surface (grid
 		     (sdl:create-surface (width self)
@@ -68,13 +89,26 @@
 	    (sdl:draw-hline 1 (* board-width square-length)
 			    (* y square-length))))))
     (sdl:set-point-* grid :y 0 :x 0)
-    (push (cons :board grid) (surfaces self))
+    (add-surface self :board grid)
     grid))
 
-(defmethod %with-renderer ((self sdl-renderer) bodyfn)
+(defmethod load-sprites ((self sdl-renderer))
+  (let ((sprite (sdl:load-image "/home/ryan/lisp/rpd-towerdefense/assets/Beacon.bmp")))
+    (setf (sdl:cells sprite)
+	  (iter
+	    (for (x y w h) in '((1 3 47 45)
+				(1 51 47 45)
+				(49 51 47 45)
+				(97 51 47 45)))
+	    (collect
+		(sdl:rectangle :x x :y y :w w :h h))))
+    (add-surface self :sprite sprite)))
+
+(defmethod %with-renderer ((self sdl-renderer) board)
   (sdl:with-init ()
     (sdl:window (width self) (height self))
     (setf (sdl:frame-rate) 15)
+    (load-sprites self)
     (draw-board self) 
     (sdl:with-events ()
       (:quit-event ()
@@ -82,4 +116,16 @@
 			 (surfaces self))
 		   T)
       (:idle ()
-	     (funcall bodyfn)))))
+	     (when (done-with-animations-p self)
+	       (simulate board 1))))))
+
+(defmethod done-with-animations-p ((self sdl-renderer))
+  (if-let ((a (cl-heap:dequeue (animations self))))
+    (progn
+      (funcall a)
+      (sdl:update-display)
+      nil)
+    T))
+
+
+

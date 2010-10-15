@@ -15,9 +15,8 @@
 		  (apply #'render-plan *renderer* pp))
 		(apply #'act pp))))))
 
-(defun test (&optional (turns 1000))
+(defun test (&optional (turns 10))
   (let ((b (parse-map *simple-map*)))
-    (with-renderer ('sdl-renderer :width 400 :height 400
-				  :board b)
-      (simulate b turns))
+    (with-renderer ('sdl-renderer :width 600 :height 600
+				  :board b) b)
     b))

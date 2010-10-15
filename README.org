@@ -31,3 +31,5 @@
 **** simple list of objects on the renderer 
      They keep track of their age, and wait for all of them to die
      before moving on to the next step in the simulation.
+* assets
+** http://opengameart.org/content/iron-plague-beaconbmp
