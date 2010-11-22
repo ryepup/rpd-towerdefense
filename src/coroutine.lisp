@@ -80,24 +80,4 @@
     (assert (eql 4 (funcall cor2 :send 6)))
     (assert (eql 6 (funcall cor2)))
     (assert (eql :done (funcall cor2)))
-    
     ))
-
-(defmacro make-coroutine ((&key (coroutine-done-value :done)) &body body)
-  (alexandria:with-gensyms ((thrfn "thread body")
-			    (c "channel"))
-    `(let* ((,c (make-instance 'chanl:bounded-channel))
-	    (,thrfn (lambda ()	  
-		      (flet ((yield (&optional n)
-			       (chanl:send ,c n)))
-			,@body
-			(yield ,coroutine-done-value)))))
-       (let ((alive-p T) val thr)
-       (lambda ()
-	 (unless thr
-	   (setf thr (chanl:pcall ,thrfn :name "coroutine")))
-	 (when alive-p 
-	   (setf val (chanl:recv ,c))
-	   (when (eq ,coroutine-done-value val)
-	     (setf alive-p nil)))
-	 val)))))
