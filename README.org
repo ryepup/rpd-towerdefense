@@ -31,5 +31,26 @@
 **** simple list of objects on the renderer 
      They keep track of their age, and wait for all of them to die
      before moving on to the next step in the simulation.
+** coroutines for player actions
+*** thread-based
+    
+| Call | T | Callfun | CR             | val | ftp |
+|------+---+---------+----------------+-----+-----|
+|    0 | 0 | lck     | waiting on lck | nil | T   |
+|    1 | 1 |         | lck            | nil | nil |
+|    1 | 2 |         | lck            | 1   | nil |
+|    1 | 3 | lck     | waiting on cv  |     |     |
+
+| run lock | yield lock | waiting on cv | val |   |
+|----------+------------+---------------+-----+---|
+| cal,cor  | cor        |               | nil |   |
+|          | cor        |               | nil |   |
+| cor      | cor,cal    |               | nil |   |
+| cor      | cor,cal    |               | 1   |   |
+|          | cor,cal    |               | 1   |   |
+|          | cor,cal    |               | 1   |   |
+|          |            | cor           | 1   |   |
+|          | cal        | cor           |     |   |
+
 * assets
 ** http://opengameart.org/content/iron-plague-beaconbmp

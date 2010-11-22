@@ -10,6 +10,7 @@
 		:serial t
 		:components
 		((:file "package")
+		 (:file "coroutine")
 		 (:file "map")
 		 (:file "towers")
 		 (:file "render")
