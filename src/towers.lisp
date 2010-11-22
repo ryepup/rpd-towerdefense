@@ -19,3 +19,16 @@
 (defmethod act ((self refinery) (plan (eql :refine)))
   (incf (money (board self)) (income-rate self))
   (incf (waiting self) (* 4 (income-rate self))))
+
+;; want something like this
+(defmethod script ((self refinery))
+  (make-coroutine ()
+    (iter
+      (while (alive-p self))
+      (yield (list :wait 4))
+      (incf (money (board self))
+	    (income-rate self)))
+
+    )
+
+  )
