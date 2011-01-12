@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp; indent-tabs: nil -*-
 
-(defsystem :rpd-towerdefense
+(defsystem #:rpd-towerdefense
   :author "Ryan Davis <ryan@mokeys.org>"
   :licence "LGPL (or talk to me)"
   :serial t
@@ -10,10 +10,19 @@
 		:serial t
 		:components
 		((:file "package")
-		 (:file "coroutine")
-		 (:file "map")
+;		 (:file "coroutine")
+;		 (:file "map")
 		 (:file "towers")
-		 (:file "render")
-		 (:file "rpd-towerdefense"))))
-  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl #:cl-heap
-			 #:bordeaux-threads))
+;		 (:file "render")
+		 (:file "rpd-towerdefense")
+		 )))
+  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl
+			 #:rpd-simulation))
+
+(asdf:defsystem #:rpd-towerdefense-tests
+  :serial t
+  :depends-on (#:rpd-towerdefense #:lisp-unit #:cl-log)
+  :components ((:module
+		:tests
+		:serial t
+		:components ((:file "package")))))

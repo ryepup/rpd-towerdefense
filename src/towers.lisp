@@ -1,34 +1,25 @@
 (in-package :rpd-towerdefense)
 
-(defclass tower (game-piece)
-  ())
+(defclass tower (spatial)
+  ((max-health :accessor max-health :initarg :max-health)
+   (health :accessor health :initarg :health)
+   (size :accessor size :initarg :size :initform 20)))
 
-(defclass refinery (tower)
+(defactor refinery (tower)
   ((income-rate :accessor income-rate :initform 10)
-   (waiting :accessor waiting :initform 3)))
+   (cooldown :accessor cooldown :initform 0)
+   (max-cooldown :accessor max-cooldown :initform 100))
+  (:function self
+	     (if (zerop (cooldown self))
+		 (progn
+		   (incf (mass *game-state*) (income-rate self))
+		   (setf (cooldown self) (max-cooldown self)))
+		 (decf (cooldown self)))
+	     (cooldown self)))
 
-(defmethod can-refine-p ((self refinery))
-  (zerop (decf (waiting self))))
-
-(defmethod parse-map-square ((obj (eql :r)))
-  (make-instance 'refinery))
-
-(defmethod plan ((self refinery))
-  (if (can-refine-p self) :refine :idle))
-
-(defmethod act ((self refinery) (plan (eql :refine)))
-  (incf (money (board self)) (income-rate self))
-  (incf (waiting self) (* 4 (income-rate self))))
-
-;; want something like this
-(defmethod script ((self refinery))
-  (make-coroutine ()
-    (iter
-      (while (alive-p self))
-      (yield (list :wait 4))
-      (incf (money (board self))
-	    (income-rate self)))
-
-    )
-
-  )
+(defmethod simulation-step :after ((self refinery))
+	   (let ((heat (truncate (alexandria:lerp (/ (cooldown self)
+						  (max-cooldown self))
+					       128 255))))
+	     (sdl:draw-box-* (x self) (y self) (size self) (size self)
+			   :color (sdl:color :g (- 255 heat) :r heat))))
