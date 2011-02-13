@@ -5,6 +5,10 @@
    (health :accessor health :initarg :health)
    (size :accessor size :initarg :size :initform 20)))
 
+(defgeneric tower-p (thing)
+  (:method ((self tower)) T)
+  (:method ((self T)) nil))
+
 (defactor refinery (tower)
   ((income-rate :accessor income-rate :initform 10)
    (cooldown :accessor cooldown :initform 0)
