@@ -1,9 +1,11 @@
 (in-package :rpd-towerdefense)
 
-(defclass tower (spatial)
+(defclass tower ()
   ((max-health :accessor max-health :initarg :max-health)
    (health :accessor health :initarg :health)
-   (size :accessor size :initarg :size :initform 20)))
+   (coordinates :initarg :coordinates :reader coordinates
+		:type (simple-vector 2))
+   (size :accessor size :initarg :size :initform 1)))
 
 (defgeneric tower-p (thing)
   (:method ((self tower)) T)
@@ -39,5 +41,6 @@
 	     (yield 100))))
 
 (defmethod simulation-step :after ((self command-pod))
-	   (sdl:draw-box-* (x self) (y self) (size self) (size self)
-			   :color sdl:*blue*))
+  (rpd-boardgame-sdl:render (coordinates self)
+			    :color sdl:*blue*
+			    :fill sdl:*blue*))

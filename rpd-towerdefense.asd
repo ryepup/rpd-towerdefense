@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp; indent-tabs: nil -*-
 
-(defsystem #:rpd-towerdefense
+(asdf:defsystem :rpd-towerdefense
   :author "Ryan Davis <ryan@mokeys.org>"
   :licence "LGPL (or talk to me)"
   :serial t
@@ -17,7 +17,9 @@
 		 (:file "rpd-towerdefense")
 		 )))
   :depends-on (#:iterate #:alexandria #:lispbuilder-sdl
-			 #:rpd-simulation))
+		#:rpd-simulation #:bordeaux-threads
+		#:rpd-boardgame #:rpd-boardgame-sdl
+		#:rpd-coroutines #:cl-log))
 
 (asdf:defsystem #:rpd-towerdefense-tests
   :serial t
@@ -25,4 +27,5 @@
   :components ((:module
 		:tests
 		:serial t
-		:components ((:file "package")))))
+		:components ((:file "package"))))
+  :depends-on (#:iterate #:alexandria #:lispbuilder-sdl #:cl-heap))
